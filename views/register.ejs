@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Registration Page</title>
+	<style>
+		body {
+  			background-color: #f2f2f2;
+  			font-family: sans-serif;
+		}
+		#container {
+  			width: 480px;
+  			margin: auto;
+		}
+		.input-field {
+  			width: 100%;
+  			margin-top: 20px;
+  			margin-bottom: 20px;
+		}
+		.input-field input {
+  			width: 100%;
+  			height: 30px;
+  			padding: 0 10px;
+  			border: 1px solid #ccc;
+  			outline: none;
+		}
+		.input-field button {
+  			background-color: #4CAF50;
+  			border: none;
+  			color: white;
+  			padding: 10px 20px;
+  			text-align: center;
+  			text-decoration: none;
+  			cursor: pointer;
+  			outline: none;
+		}
+		.error-msg {
+  			color: red;
+		}
+	</style>
+</head>
+<body>
+	<div id="container">
+  		<form>
+			<%
+			let mobile = '';
+			let password = '';
+			let repeatPassword = '';
+			let registerBtn = 'Register';
+			let loginBtn = 'Login';
+			let errorMsg = '';
+			%>
+    		<div class="input-field">
+      			<label>Mobile :</label>
+      			<input type="text" id="mobile" value="<%= mobile %>"/>
+    		</div>
+    		<div class="input-field">
+      			<label>Password:</label>
+      			<input type="password" id="password" value="<%= password %>"/>
+    		</div>
+    		<div class="input-field">
+      			<label>Repeat Password:</label>
+      			<input type="password" id="repeat-password" value="<%= repeatPassword %>"/>
+    		</div>
+    		<div class="input-field">
+      			<button type="submit" id="register-btn" disabled><%= registerBtn %></button>
+      			<button type="button" id="login-btn"><%= loginBtn %></button>
+    		</div>
+    		<div class="error-msg" id="error-msg"><%= errorMsg %></div>
+  		</form>
+	</div>
+	<script>
+		let mobile = document.getElementById('mobile');
+        let password = document.getElementById('password');
+        let repeatPassword = document.getElementById('repeat-password');
+        let registerBtn = document.getElementById('register-btn');
+        let loginBtn = document.getElementById('login-btn');
+        let errorMsg = document.getElementById('error-msg');
+
+        mobile.addEventListener('input', function() {
+            if (mobile.value.length == 11) {
+                if (password.value.length > 0) {
+                    registerBtn.disabled = false;
+                }
+            } else {
+                registerBtn.disabled = true;
+            }
+        });
+
+        password.addEventListener('input', function() {
+            if (password.value.length > 0) {
+                if (mobile.value.length == 11 && password.value === repeatPassword.value) {
+                    registerBtn.disabled = false;
+                }
+            } else {
+                registerBtn.disabled = true;
+            }
+        });
+
+        repeatPassword.addEventListener('input', function() {
+            if (password.value === repeatPassword.value) {
+                if (mobile.value.length == 11 && password.value.length > 0) {
+                    registerBtn.disabled = false;
+                }
+            } else {
+                registerBtn.disabled = true;
+            }
+        });
+
+        registerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            let data = {
+                mobile: mobile.value,
+                password: password.value
+            };
+
+            fetch('http://example.com/register', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            })
+            .then(function(response) {
+                if (response.ok) {
+                    window.location.href = 'messages.html';
+                } else {
+                    return response.json();
+                }
+            })
+            .then(function(data) {
+                errorMsg.innerHTML = data.message;
+            });
+        });
+
+        loginBtn.addEventListener('click', function() {
+            window.location.href = "http://localhost:3000/";
+        });
+	</script>
+</body>
+</html>

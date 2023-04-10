@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Messaging Page</title>
+	<style>
+		body {
+  			background-color: #f2f2f2;
+  			font-family: sans-serif;
+		}
+		#container {
+  			width: 480px;
+  			margin: auto;
+		}
+		.input-field {
+  			width: 100%;
+  			margin-top: 20px;
+  			margin-bottom: 20px;
+		}
+		.input-field input {
+  			width: 100%;
+  			height: 30px;
+  			padding: 0 10px;
+  			border: 1px solid #ccc;
+  			outline: none;
+		}
+		.input-field button {
+  			background-color: #4CAF50;
+  			border: none;
+  			color: white;
+  			padding: 10px 20px;
+  			text-align: center;
+  			text-decoration: none;
+  			cursor: pointer;
+  			outline: none;
+		}
+		.error-msg {
+  			color: red;
+		}
+	</style>
+</head>
+<body>
+  <%
+  if(typeof contacts === 'undefined'){
+    contacts = '';
+  }
+  if(typeof message === 'undefined'){
+    message = '';
+  }
+  if(typeof sendBtnDisabled === 'undefined'){
+    sendBtnDisabled = '';
+  }
+  if(typeof errorMsg === 'undefined'){
+    errorMsg = '';
+  }
+%>
+<div id="container">
+  <div class="input-field">
+    <label>Contacts :</label>
+    <ul id="contacts"><%= contacts %></ul>
+  </div>
+  <div class="input-field">
+    <label>Message :</label>
+    <input type="text" id="message" value="<%= message %>"/>
+  </div>
+  <div class="input-field">
+    <button type="submit" id="send-btn" <%= sendBtnDisabled %>>Send</button>
+    <button type="submit" id="refresh-btn">Refresh</button>
+  </div>
+  <div class="error-msg" id="error-msg"><%= errorMsg %></div>
+</div>
+  <script>
+    let contacts = document.getElementById('contacts');
+    let message = document.getElementById('message');
+    let sendBtn = document.getElementById('send-btn');
+    let refreshBtn = document.getElementById('refresh-btn');
+    let errorMsg = document.getElementById('error-msg');
+  
+  
+    message.addEventListener('input', function() {
+      if (message.value.length > 0) {
+        sendBtn.disabled = false;
+      } else {
+        sendBtn.disabled = true;
+      }
+    });
+  </script>
+
+<script>
+	let addChatBtn = document.createElement('button');
+	let container = document.getElementById('container');
+		
+	addChatBtn.innerHTML = 'Add Chat';
+	addChatBtn.id = 'add-chat-btn';
+		
+	container.appendChild(addChatBtn);
+
+	let addChatWindow = document.createElement('div');
+	
+	addChatWindow.innerHTML = '<div class="input-field">' + '<label>Name:</label>' + '<input type="text" id="name">' + '</div>' + '<div class="input-field">' + '<label>Number:</label>' + '<input type="text" id="number">' + '</div>' + '<div class="input-field">' + '<button type="submit" id="add-contact-btn">Add Contact</button>' + '<button type="submit" id="cancel-btn">Cancel</button>' + '</div>' + '<div class="error-msg" id="add-contact-error-msg"></div>';
+		
+	addChatWindow.id = 'add-chat-window';
+	addChatWindow.style.display = 'none';
+		
+	container.appendChild(addChatWindow);
+		
+	let showAddChat = function() {
+		addChatWindow.style.display = 'block';
+		addChatBtn.style.display = 'none';
+	};
+		
+	let hideAddChat = function() {
+		addChatWindow.style.display = 'none';
+		addChatBtn.style.display = 'block';
+	};
+		
+	let addContactBtn = document.getElementById('add-contact-btn');
+	let nameInput = document.getElementById('name');
+	let numberInput = document.getElementById('number');
+	let addContactErrorMsg = document.getElementById('add-contact-error-msg');
+		
+	let addContact = function() {
+		let name = nameInput.value;
+		let number = numberInput.value;
+	
+		fetch('http://example.com/add-contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+		},
+			body: JSON.stringify({
+				name: name,
+				number: number
+			})
+		})
+		.then(function(response) {
+			if (response.ok) {
+				return response.json();
+			} else {
+				return response.json();
+			}
+		})
+		.then(function(data) {
+			if (data.success) {
+				let contact = `<li>${name}, ${number}</li>`;
+				contacts.innerHTML += contact;
+				hideAddChat();
+			} else {
+				addContactErrorMsg.innerHTML = data.message;
+			}
+		});
+	};
+		
+	addChatBtn.addEventListener('click', showAddChat);
+	
+	addContactBtn.addEventListener('click', addContact);
+	
+	let cancelBtn = document.getElementById('cancel-btn');
+	cancelBtn.addEventListener('click', hideAddChat);
+</script>
+
+</body>
+</html>
