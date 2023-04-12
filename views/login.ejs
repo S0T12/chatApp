@@ -66,7 +66,7 @@
 		let registerButton = document.getElementById('register-button');
 		let errorMsg = document.getElementById('error-msg');
 
-		mobile = document.getElementById('mobile');
+		
         mobile.addEventListener('input', () => {
             if (mobile.value.length == 11) {
                 if (password.value.length > 0) {
@@ -92,22 +92,23 @@
             location.href = '<%= "http://localhost:3000/signup" %>';
         });
 
+		let ws = new WebSocket('ws://localhost:8080');
+
 		loginBtn.addEventListener('click', (e) => {
 			e.preventDefault();
+
 			let data = {
 				mobile: mobile.value,
 				password: password.value
 			}
 
-			let socket = new WebSocket("ws://localhost:8080/");
+			ws.send(JSON.stringify(data));
 
-			socket.onmessage = (event) => {
-				let response = JSON.parse(event.data);
-				if(response.success) {
-					location.href = '<%= "http://localhost:3000/signup" %>';
-					socket.close();
-				} else {
-					errorMsg.innerHTML = response.message;
+			ws.onmessage = (msg) => {
+				if(msg.data === 'true') {
+					location.href = '<%= "http://localhost:3000/messaging" %>';
+				} else if(msg.data === 'false') {
+					console.log('password incorrect!');
 				}
 			}
 		});
