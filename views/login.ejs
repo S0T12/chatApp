@@ -105,6 +105,7 @@
 			ws.send(JSON.stringify(data));
 
 			ws.onmessage = (msg) => {
+				console.log(msg.data);
 				if(msg.data === 'true') {
 					location.href = '<%= "http://localhost:3000/messaging" %>';
 				} else if(msg.data === 'false') {

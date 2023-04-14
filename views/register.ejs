@@ -89,7 +89,9 @@
         password.addEventListener('input', function() {
             if (password.value.length > 0) {
                 if (mobile.value.length == 11 && password.value === repeatPassword.value) {
-                    registerBtn.disabled = false;
+					if(password.length >= 8) {
+						registerBtn.disabled = false;
+					}
                 }
             } else {
                 registerBtn.disabled = true;
@@ -106,28 +108,26 @@
             }
         });
 
+		let ws = new WebSocket('ws://localhost:8081');
+
         registerBtn.addEventListener('click', function(e) {
             e.preventDefault();
 
             let data = {
                 mobile: mobile.value,
-                password: password.value
+                password: password.value,
+				repeatPassword: repeatPassword.value
             };
 
-            fetch('http://example.com/register', {
-                method: 'POST',
-                body: JSON.stringify(data)
-            })
-            .then(function(response) {
-                if (response.ok) {
-                    window.location.href = 'messages.html';
-                } else {
-                    return response.json();
-                }
-            })
-            .then(function(data) {
-                errorMsg.innerHTML = data.message;
-            });
+			ws.send(JSON.stringify(data));
+
+			ws.onmessage = (msg) => {
+				if(msg.data === 'true') {
+					location.href = '<%= "http://localhost:3000/" %>';
+				} else {
+					console.log('user exists');
+				}
+			}
         });
 
         loginBtn.addEventListener('click', function() {
