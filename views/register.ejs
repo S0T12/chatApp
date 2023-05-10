@@ -78,8 +78,10 @@
 
         mobile.addEventListener('input', function() {
             if (mobile.value.length == 11) {
-                if (password.value.length > 0) {
-                    registerBtn.disabled = false;
+                if (password.value.length > 0 && password.value === repeatPassword.value) {
+					if(password.length >= 8) {
+						registerBtn.disabled = false;
+					}
                 }
             } else {
                 registerBtn.disabled = true;
@@ -87,11 +89,9 @@
         });
 
         password.addEventListener('input', function() {
-            if (password.value.length > 0) {
-                if (mobile.value.length == 11 && password.value === repeatPassword.value) {
-					if(password.length >= 8) {
-						registerBtn.disabled = false;
-					}
+            if (password.value.length > 0 && password.value === repeatPassword.value) {
+                if (mobile.value.length == 11) {
+                    registerBtn.disabled = false;
                 }
             } else {
                 registerBtn.disabled = true;
@@ -116,21 +116,20 @@
             let data = {
                 mobile: mobile.value,
                 password: password.value,
-				repeatPassword: repeatPassword.value
             };
 
 			ws.send(JSON.stringify(data));
 
 			ws.onmessage = (msg) => {
 				if(msg.data === 'true') {
-					location.href = '<%= "http://localhost:3000/" %>';
+					location.href = `<%= "http://localhost:3000/" %>`;
 				} else {
 					console.log('user exists');
 				}
 			}
         });
-
-        loginBtn.addEventListener('click', function() {
+		
+		loginBtn.addEventListener('click', function() {
             window.location.href = "http://localhost:3000/";
         });
 	</script>

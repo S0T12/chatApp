@@ -66,11 +66,10 @@
 		let registerButton = document.getElementById('register-button');
 		let errorMsg = document.getElementById('error-msg');
 
-		
-        mobile.addEventListener('input', () => {
+		mobile.addEventListener('input', () => {
             if (mobile.value.length == 11) {
                 if (password.value.length > 0) {
-                    loginBtn.disabled = false;
+					loginBtn.disabled = false;
                 }
             } else {
                 loginBtn.disabled = true;
@@ -92,7 +91,11 @@
             location.href = '<%= "http://localhost:3000/signup" %>';
         });
 
+
+
 		let ws = new WebSocket('ws://localhost:8080');
+		let ws3 = new WebSocket('ws://localhost:8083');
+		let token;
 
 		loginBtn.addEventListener('click', (e) => {
 			e.preventDefault();
@@ -100,19 +103,45 @@
 			let data = {
 				mobile: mobile.value,
 				password: password.value
-			}
-
+			};
+			console.log(`first send from client`);
 			ws.send(JSON.stringify(data));
-
-			ws.onmessage = (msg) => {
-				console.log(msg.data);
-				if(msg.data === 'true') {
-					location.href = '<%= "http://localhost:3000/messaging" %>';
-				} else if(msg.data === 'false') {
-					console.log('password incorrect!');
-				}
-			}
 		});
+
+
+		function jwt_decode(token) {
+			let base64Url = token.split('.')[1];
+			let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+			let jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+				return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+			}).join(''));
+
+			return JSON.parse(jsonPayload);
+		};
+
+		ws.onmessage = (msg) => {
+			token = msg.data;
+			console.log(`second send from client(token) : ${token}`);
+			
+			ws3.send(JSON.stringify(token));
+		};
+
+		ws3.onmessage = (msg) => {
+			console.log(`give data from client ${msg.data}`);
+			
+			if (msg.data === 'false') {
+				errorMsg.innerHTML = 'password incorrect!';
+			} else if (msg.data === 'true') {
+				try {
+				let data = jwt_decode(token);
+				location.href = `<%= "http://localhost:3000/messaging/${data.uuid}" %>`;
+				} catch (err) {
+				console.log(err);
+				}
+				
+			}
+
+		}
 	</script>
 </body>
 </html>
