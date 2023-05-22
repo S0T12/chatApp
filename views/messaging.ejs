@@ -39,24 +39,14 @@
 	</style>
 </head>
 <body>
-  <%
-  if(typeof contacts === 'undefined'){
-    contacts = '';
-  }
-  if(typeof message === 'undefined'){
-    message = '';
-  }
-  if(typeof sendBtnDisabled === 'undefined'){
-    sendBtnDisabled = '';
-  }
-  if(typeof errorMsg === 'undefined'){
-    errorMsg = '';
-  }
-  if (typeof token === 'undefined') {
-    token = '';
-  }
-%>
 <div id="container">
+  <%
+    let contacts;
+    let message;
+    let sendBtnDisabled;
+    let errorMsg;
+    let token;
+  %>
   <div class="input-field">
     <label>Contacts :</label>
     <ul id="contacts"><%= contacts %></ul>
@@ -79,24 +69,48 @@
     let errorMsg = document.getElementById('error-msg');
     let token = '<%= token %>';
   
-    let ws = new WebSocket('ws://localhost:8082');
+    let ws = new WebSocket('ws://localhost:8080');
 
     ws.onopen = function() {
     console.log('Connection established');
     ws.send(JSON.stringify({
-      type: 'getContacts',
+      action: "messaging",
       token: token
     }));
     }
 
     ws.onmessage = function(msg) {
-    console.log(msg);
+
     let data = JSON.parse(msg.data);
+    
     if (data.type === 'contacts') {
       contacts.innerHTML = '';
       data.contacts.forEach(function(contact) {
+
       let li = document.createElement('li');
       li.innerHTML = contact.name + ' ' + contact.number;
+      
+      contacts.appendChild(li);
+
+      let getMessagesBtn = document.createElement('button');
+
+      getMessagesBtn.innerHTML = 'Get Messages';
+
+      getMessagesBtn.addEventListener('click', function() {
+        ws.send(JSON.stringify({
+        type: 'getMessages',
+        contactNumber: contact.number,
+        token: token
+      }));
+      });
+
+      contacts.appendChild(getMessagesBtn);
+      });
+    } else if (data.type === 'messages') {
+      contacts.innerHTML = '';
+      data.messages.forEach(function(message) {
+      let li = document.createElement('li');
+      li.innerHTML = message.sender + ': ' + message.message;
       contacts.appendChild(li);
       });
     }
@@ -127,7 +141,7 @@
     }));
     });
 
-    let addContactBtn = document.createElement('button');
+    let addContactBtn = document.createElement('button'); 
     let container = document.getElementById('container');
 
     addContactBtn.innerHTML = 'Add Contact';
@@ -184,6 +198,6 @@
 
     let cancelBtn = document.getElementById('cancel-btn');
     cancelBtn.addEventListener('click', hideAddContact);
-	</script>
+  </script>
 </body>
 </html>

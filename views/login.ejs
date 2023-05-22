@@ -92,9 +92,7 @@
         });
 
 
-
 		let ws = new WebSocket('ws://localhost:8080');
-		let ws3 = new WebSocket('ws://localhost:8083');
 		let token;
 
 		loginBtn.addEventListener('click', (e) => {
@@ -102,9 +100,9 @@
 
 			let data = {
 				mobile: mobile.value,
-				password: password.value
+				password: password.value,
+				action: "login"
 			};
-			console.log(`first send from client`);
 			ws.send(JSON.stringify(data));
 		});
 
@@ -118,29 +116,35 @@
 
 			return JSON.parse(jsonPayload);
 		};
-
 		ws.onmessage = (msg) => {
-			token = msg.data;
-			console.log(`second send from client(token) : ${token}`);
-			
-			ws3.send(JSON.stringify(token));
-		};
+			let data = JSON.parse(msg.data);	
 
-		ws3.onmessage = (msg) => {
-			console.log(`give data from client ${msg.data}`);
-			
-			if (msg.data === 'false') {
-				errorMsg.innerHTML = 'password incorrect!';
-			} else if (msg.data === 'true') {
-				try {
-				let data = jwt_decode(token);
-				location.href = `<%= "http://localhost:3000/messaging/${data.uuid}" %>`;
-				} catch (err) {
-				console.log(err);
-				}
-				
+			switch(data.action) {
+				case "token":
+					token = data.token;
+					// for verify client.	
+					let justToken = {
+						token: token,
+						action: "jwtVerify"
+					}
+					
+					ws.send(JSON.stringify(justToken));	
+				break;
+
+				case "jwt":
+					
+					if (data.result === 'false') {
+						errorMsg.innerHTML = 'mobile or password incorrect!';
+					} else if (data.result === 'true') {
+						try {
+						let data = jwt_decode(token);
+						location.href = `<%= "http://localhost:3000/messaging/${data.uuid}" %>`;
+						} catch (err) {
+						console.log(err);
+						}
+					}
+				break;
 			}
-
 		}
 	</script>
 </body>

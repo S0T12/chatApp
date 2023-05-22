@@ -108,7 +108,7 @@
             }
         });
 
-		let ws = new WebSocket('ws://localhost:8081');
+		let ws = new WebSocket('ws://localhost:8080');
 
         registerBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -116,6 +116,7 @@
             let data = {
                 mobile: mobile.value,
                 password: password.value,
+				action: "register"
             };
 
 			ws.send(JSON.stringify(data));
