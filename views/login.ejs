@@ -116,12 +116,15 @@
 
 			return JSON.parse(jsonPayload);
 		};
+
+		
 		ws.onmessage = (msg) => {
 			let data = JSON.parse(msg.data);	
 
 			switch(data.action) {
 				case "token":
 					token = data.token;
+					document.cookie = "token=" + token;
 					// for verify client.	
 					let justToken = {
 						token: token,
@@ -138,7 +141,7 @@
 					} else if (data.result === 'true') {
 						try {
 						let data = jwt_decode(token);
-						location.href = `<%= "http://localhost:3000/messaging/${data.uuid}" %>`;
+						location.href = `<%= "http://localhost:3000/messaging/"%>`;
 						} catch (err) {
 						console.log(err);
 						}
