@@ -39,7 +39,12 @@ wss.on('connection', (ws) => {
             ws.send(JSON.stringify(info));
 
           } else {
-            ws.send('false');
+            console.log(`42 server.js false`);
+            let info = {
+              res: 'false',
+              action: 'falseLogin', 
+            }
+            ws.send(JSON.stringify(info));
           }
         });
         break;
@@ -50,14 +55,22 @@ wss.on('connection', (ws) => {
     
         database.query(`SELECT * FROM users WHERE mobile=${data.mobile}`, (err, result) => {
           if(err) throw err;
-          
+          let info;
           if(result.length > 0) {
-            ws.send('false');
+            info = {
+              res: 'false',
+              action: 'falseRegister',
+            }
+            ws.send(JSON.stringify(info));
           } else {
             database.query(`INSERT INTO users (mobile, password, uuid) VALUES (${data.mobile}, '${data.password}', '${uuidValue}')`, (err, result) => {
               if(err) throw err;
               
-              ws.send('true');
+              info = {
+                res: 'true',
+                action: 'doneRegister',
+              }
+              ws.send(JSON.stringify(info));
             });
           }
         });
@@ -106,8 +119,6 @@ wss.on('connection', (ws) => {
                 number: result.contact_mobile
               }
             });
-
-            console.log(`112 server.js contacts : ${contacts}`);
             
             ws.send(JSON.stringify({
             type: 'contacts',

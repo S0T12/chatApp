@@ -122,6 +122,10 @@
 			let data = JSON.parse(msg.data);	
 
 			switch(data.action) {
+				case "falseLogin":
+				errorMsg.innerHTML = 'mobile or password incorrect!';
+				break;
+
 				case "token":
 					token = data.token;
 					document.cookie = "token=" + token;
@@ -137,6 +141,7 @@
 				case "jwt":
 					
 					if (data.result === 'false') {
+						console.log(`140 messaging.ejs false`);
 						errorMsg.innerHTML = 'mobile or password incorrect!';
 					} else if (data.result === 'true') {
 						try {

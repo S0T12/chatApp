@@ -122,10 +122,17 @@
 			ws.send(JSON.stringify(data));
 
 			ws.onmessage = (msg) => {
-				if(msg.data === 'true') {
-					location.href = `<%= "http://localhost:3000/" %>`;
-				} else {
-					console.log('user exists');
+				let data = JSON.parse(msg.data);
+				console.log(`126 regsiter.ejs data : ${data.action}`);
+				switch(data.action) {
+
+					case "doneRegister":
+							location.href = `<%= "http://localhost:3000/" %>`;
+					break;
+					
+					case "falseRegister":
+						console.log('user exists');
+					break;
 				}
 			}
         });
