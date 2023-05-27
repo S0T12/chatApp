@@ -128,7 +128,6 @@
 
 				case "token":
 					token = data.token;
-					document.cookie = "token=" + token;
 					// for verify client.	
 					let justToken = {
 						token: token,
@@ -145,6 +144,7 @@
 						errorMsg.innerHTML = 'mobile or password incorrect!';
 					} else if (data.result === 'true') {
 						try {
+     					document.cookie = "token=" + token;
 						let data = jwt_decode(token);
 						location.href = `<%= "http://localhost:3000/messaging/"%>`;
 						} catch (err) {
