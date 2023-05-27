@@ -165,7 +165,7 @@ wss.on('connection', (ws) => {
             return;
           }
           
-          let mobile = decoded.id;
+          let mobile = decoded.mobile;
           let uuid = decoded.uuid;
           let message = data.message;
           
