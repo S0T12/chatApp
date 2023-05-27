@@ -114,7 +114,7 @@
           data.contacts.forEach(function(contact) {
     
           let li = document.createElement('li');
-          li.innerHTML = contact.name + ' ' + contact.number;
+          li.innerHTML = contact.name + ' ' + contact.mobile;
           
           contacts.appendChild(li);
     
@@ -125,7 +125,7 @@
           getMessagesBtn.addEventListener('click', function() {
             ws.send(JSON.stringify({
             type: 'getMessages',
-            contactNumber: contact.number,
+            contactNumber: contact.mobile,
             token: token
           }));
           });
