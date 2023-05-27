@@ -168,11 +168,15 @@
       });
   
       let addContactBtn = document.createElement('button');
+      let showListBtn = document.createElement('button');
       let container = document.getElementById('container');
   
       addContactBtn.innerHTML = 'Add Contact';
       addContactBtn.id = 'add-contact-btn';
-  
+
+      showListBtn.innerHTML = 'Show List';
+      showListBtn.id ='show-list-btn';
+
       container.appendChild(addContactBtn);
   
       let addContactWindow = document.createElement('div');
@@ -201,8 +205,10 @@
   
       addContactBtn.addEventListener('click', showAddContact);
   
+      document.getElementById('cancel-btn').addEventListener('click', hideAddContact);
+  
       addContactBtn.addEventListener('click', function() {
-        console.log(`205 messaging.ejs addEventListener`);
+        console.log(`207 messaging.ejs addEventListener`);
         let name = nameInput.value;
         let number = numberInput.value;
         let token = tokenInput.value;
@@ -222,8 +228,8 @@
           numberInput.value = '';
           hideAddContact();
         }
-      });
-  
+      });  
+      
       let cancelBtn = document.getElementById('cancel-btn');
       cancelBtn.addEventListener('click', hideAddContact);
     </script>

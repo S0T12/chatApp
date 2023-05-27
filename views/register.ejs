@@ -123,7 +123,6 @@
 
 			ws.onmessage = (msg) => {
 				let data = JSON.parse(msg.data);
-				console.log(`126 regsiter.ejs data : ${data.action}`);
 				switch(data.action) {
 
 					case "doneRegister":

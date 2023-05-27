@@ -105,10 +105,9 @@ wss.on('connection', (ws) => {
             return;
           }
           
-          let mobile = decoded.id;
+          let mobile = decoded.mobile;
           let uuid = decoded.uuid;
 
-          console.log(`mobile : ${mobile} \n uuid : ${uuid} `);
           
           database.query(`SELECT contact_name, contact_mobile FROM contacts WHERE user_mobile='${mobile}' AND user_uuid='${uuid}'`, (err, results) => {
             if (err) throw err;
