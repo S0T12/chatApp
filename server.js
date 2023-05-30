@@ -106,11 +106,17 @@ wss.on('connection', (ws) => {
           }
           
           let mobile = decoded.mobile;
-          let uuid = decoded.uuid;
-
           
-          database.query(`SELECT contact_name, contact_mobile FROM contacts WHERE user_mobile='${mobile}' AND user_uuid='${uuid}'`, (err, results) => {
-            if (err) throw err;
+          database.query(`SELECT contact_name, contact_mobile FROM contacts WHERE user_mobile='${mobile}'`, (err, results) => {
+            console.log(results);
+            if (err) {
+              console.log(err);
+              ws.send(JSON.stringify({
+                type: 'contacts',
+                contacts: []
+              }));
+              return;
+            }
           
             let contacts = results.map(function(result) {
               return {
