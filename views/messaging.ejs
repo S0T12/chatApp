@@ -36,30 +36,64 @@
 		.error-msg {
   			color: red;
 		}
+		.contact {
+  			margin-bottom: 10px;
+		}
+		.contact-name {
+  			margin-right: 10px;
+		}
+		#dialogue-output {
+  			background-color: #ffffff;
+  			min-height: 200px;
+  			width: 100%;
+  			overflow: auto;
+  			margin-bottom: 10px;
+  			padding: 10px;
+		}
+		.Output {
+  			color: #000000;
+  			border-radius: 5px;
+  			margin-bottom: 10px;
+  			padding: 10px;
+		}
+		.sent-message {
+  			text-align: right;
+  			background-color: #f2f2f2;
+		}
+		.received-message {
+  			background-color: #f2f2f2;
+		}
 	</style>
 </head>
 <body>
   <div id="container">
     <%
       let contacts;
+      let messages;
       let message;
       let sendBtnDisabled;
       let errorMsg;
       let token;
     %>
-    <div class="input-field">
-      <label>Contact List:</label>
-      <ul id="contacts"><%= contacts %></ul>
-    </div>
-    <div class="input-field">
-      <label>Header of Dialogue Space:</label>
-    </div>
+    
     <div class="input-field">
       <form action="">
-        <label>Chat Space and Message List:</label>
-        <textarea name="" id="messages" cols="30" rows="2"><%= message %></textarea>
+        <label>Name of contact:</label>
       </form>
     </div>
+    
+    <hr>
+		
+    <div class="input-field">
+      <label>Contacts List:</label>
+      <ul id="contacts"><%= contacts %></ul>
+    </div>
+    
+    <div class="input-field">
+      <label>Dialog Space:</label>
+      <div id="dialogue-output"><%= messages %></div>
+    </div>
+    
     <div class="input-field">
       <label>Send Message:</label>
       <form action="">
@@ -76,31 +110,33 @@
       let sendBtn = document.getElementById('send-btn');
       let refreshBtn = document.getElementById('refresh-btn');
       let errorMsg = document.getElementById('error-msg');
-      let messages = document.getElementById('messages');
+      let dialogueOutput = document.getElementById('dialogue-output')
+      let selectedContactNumber;
+      let contactName;
 
       // Function to set cookie data
       function setCookie(cname, cvalue, exdays) {
-          let d = new Date();
-          d.setTime(d.getTime() + (exdays*24*60*60*1000));
-          let expires = "expires="+ d.toUTCString();
-          document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        let d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        let expires = "expires="+ d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
       }
 
       // Getting data from the cookie
       function getCookie(cname) {
-          let name = cname + "=";
-          let decodedCookie = decodeURIComponent(document.cookie);
-          let ca = decodedCookie.split(';');
-          for(let i = 0; i <ca.length; i++) {
-              let c = ca[i];
-              while (c.charAt(0) == ' ') {
-                  c = c.substring(1);
-              }
-              if (c.indexOf(name) == 0) {
-                  return c.substring(name.length, c.length);
-              }
-          }
-          return "";
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
       }
 
       let token = getCookie('token');
@@ -114,8 +150,8 @@
           token: token
         }));
       }
-  
-      ws.onmessage = function(msg) {
+
+    ws.onmessage = function(msg) {
   
         let data = JSON.parse(msg.data);
         
@@ -123,35 +159,35 @@
           contacts.innerHTML = '';
           data.contacts.forEach(function(contact) {
     
-          let li = document.createElement('li');
-          li.innerHTML = contact.name + ' ' + contact.number;
-          
-          contacts.appendChild(li);
-    
-          let getMessagesBtn = document.createElement('button');
-    
-          getMessagesBtn.innerHTML = 'Get Messages';
-    
-          getMessagesBtn.addEventListener('click', function() {
-            ws.send(JSON.stringify({
-            type: 'getMessages',
-            contactNumber: contact.number,
-            token: token
-          }));
-          });
-    
-          contacts.appendChild(getMessagesBtn);
+            let li = document.createElement('li');
+
+            li.className = 'contact';
+            li.innerHTML = '<span class="contact-name">' + contact.name + '</span>' + contact.number;
+            li.addEventListener('click', function() {
+              selectedContactNumber = contact.number;
+              contactName = contact.name;
+              document.querySelector('label').innerHTML = contactName;
+              ws.send(JSON.stringify({
+                type: "getMessages",
+                contactNumber: contact.number,
+                token: token
+              }));
+            });
+
+            contacts.appendChild(li);
           });
         } else if (data.type === 'messages') {
-            contacts.innerHTML = '';
-            data.messages.forEach(function(message) {
-            let li = document.createElement('li');
-            li.innerHTML = message.sender + ': ' + message.message;
-            contacts.appendChild(li);
-            });
+          dialogueOutput.innerHTML = '';
+          data.messages.forEach(function(message) {
+            let div = document.createElement('div');
+            div.className = (message.sender === selectedContactNumber) ? 'sent-message Output' : 'received-message Output'; 
+            div.innerHTML = message.message;
+            dialogueOutput.appendChild(div);
+            dialogueOutput.scrollTop = dialogueOutput.scrollHeight;
+          });
         }
       }
-       
+		
       message.addEventListener('input', function() {
         if (message.value.length > 0) {
           sendBtn.disabled = false;
@@ -164,6 +200,7 @@
         ws.send(JSON.stringify({
           action: 'send',
           message: message.value,
+          contactNumber: selectedContactNumber,
           token: token
         }));
         message.value = '';
@@ -172,77 +209,11 @@
   
       refreshBtn.addEventListener('click', function() {
         ws.send(JSON.stringify({
-          action: 'getContacts',
-          token: token
+            type: 'getContacts',
+            token: token
         }));
+        document.querySelector('label').innerHTML = contactName;
       });
-  
-      let addContactBtn = document.createElement('button');
-      let showListBtn = document.createElement('button');
-      let container = document.getElementById('container');
-  
-      addContactBtn.innerHTML = 'Add Cont';
-      addContactBtn.id = 'add-contact-btn';
-
-      showListBtn.innerHTML = 'Show List';
-      showListBtn.id ='show-list-btn';
-
-      container.appendChild(addContactBtn);
-      container.appendChild(showListBtn);
-  
-      let addContactWindow = document.createElement('div');
-  
-      addContactWindow.innerHTML = '<div class="input-field">' + '<label>Name:</label>' + '<input type="text" id="name">' + '</div>' + '<div class="input-field">' + '<label>Number:</label>' + '<input type="text" id="number">' + '</div>' + '<div class="input-field">' + '<button type="submit" id="add-contact-btn">Add Contact</button>' + '<button type="submit" id="cancel-btn">Cancel</button>' + '</div>' + '<input type="hidden" id="token" value="' + token + '">' + '<div class="error-msg" id="add-contact-error-msg"></div>';
-  
-      addContactWindow.id = 'add-contact-window';
-      addContactWindow.style.display = 'none';
-  
-      container.appendChild(addContactWindow);
-  
-      let showAddContact = function() {
-        addContactWindow.style.display = 'block';
-        // addContactBtn.style.display = 'none';
-        showListBtn.style.display = 'none';
-      };
-  
-      let hideAddContact = function() {
-        addContactWindow.style.display = 'none';
-        addContactBtn.style.display = 'block';
-        showListBtn.style.display='block';
-      };
-  
-      let nameInput = document.getElementById('name');
-      let numberInput = document.getElementById('number');
-      let addContactErrorMsg = document.getElementById('add-contact-error-msg');
-  
-      showListBtn.addEventListener('click', showAddContact);
-  
-      document.getElementById('cancel-btn').addEventListener('click', hideAddContact);
-  
-      addContactBtn.addEventListener('click', function() {
-        console.log(`207 messaging.ejs addEventListener`);
-        let name = nameInput.value;
-        let number = numberInput.value;
-        
-        if (name === '' || number === '') {
-          addContactErrorMsg.innerHTML = 'Name and Number are required';
-        } else {
-          ws.send(JSON.stringify({
-          action: 'addContact',
-          name: name,
-          number: number,
-          token: token
-          }));
-          
-          addContactErrorMsg.innerHTML = '';
-          nameInput.value = '';
-          numberInput.value = '';
-          hideAddContact();
-        }
-      });  
-      
-      let cancelBtn = document.getElementById('cancel-btn');
-      cancelBtn.addEventListener('click', hideAddContact);
     </script>
 </body>
 </html>

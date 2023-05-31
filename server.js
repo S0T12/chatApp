@@ -187,6 +187,7 @@ wss.on('connection', (ws) => {
             contacts.forEach(function(contact) {
               database.query(`INSERT INTO messages (sender, contact_mobile, user_mobile, user_uuid, message) VALUES ('${mobile}', '${contact}', '${mobile}', '${uuid}', '${message}')`, (err, result) => {
                 if (err) throw err;
+                console.log(`done!`);
               });
             });
           
