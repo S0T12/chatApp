@@ -48,16 +48,25 @@
       let token;
     %>
     <div class="input-field">
-      <label>Contacts :</label>
+      <label>Contact List:</label>
       <ul id="contacts"><%= contacts %></ul>
     </div>
     <div class="input-field">
-      <label>Message :</label>
-      <input type="text" id="message" value="<%= message %>"/>
+      <label>Header of Dialogue Space:</label>
     </div>
     <div class="input-field">
-      <button type="submit" id="send-btn" <%= sendBtnDisabled %>>Send</button>
-      <button type="submit" id="refresh-btn">Refresh</button>
+      <form action="">
+        <label>Chat Space and Message List:</label>
+        <textarea name="" id="messages" cols="30" rows="2"><%= message %></textarea>
+      </form>
+    </div>
+    <div class="input-field">
+      <label>Send Message:</label>
+      <form action="">
+        <input type="text" id="message" value="<%= message %>"/>
+        <button type="submit" id="send-btn" <%= sendBtnDisabled %>>Send</button>
+        <button type="submit" id="refresh-btn">Refresh</button>
+      </form>
     </div>
     <div class="error-msg" id="error-msg"><%= errorMsg %></div>
   </div>
@@ -67,6 +76,7 @@
       let sendBtn = document.getElementById('send-btn');
       let refreshBtn = document.getElementById('refresh-btn');
       let errorMsg = document.getElementById('error-msg');
+      let messages = document.getElementById('messages');
 
       // Function to set cookie data
       function setCookie(cname, cvalue, exdays) {
@@ -171,13 +181,14 @@
       let showListBtn = document.createElement('button');
       let container = document.getElementById('container');
   
-      addContactBtn.innerHTML = 'Add Contact';
+      addContactBtn.innerHTML = 'Add Cont';
       addContactBtn.id = 'add-contact-btn';
 
       showListBtn.innerHTML = 'Show List';
       showListBtn.id ='show-list-btn';
 
       container.appendChild(addContactBtn);
+      container.appendChild(showListBtn);
   
       let addContactWindow = document.createElement('div');
   
@@ -190,20 +201,21 @@
   
       let showAddContact = function() {
         addContactWindow.style.display = 'block';
-        addContactBtn.style.display = 'none';
+        // addContactBtn.style.display = 'none';
+        showListBtn.style.display = 'none';
       };
   
       let hideAddContact = function() {
         addContactWindow.style.display = 'none';
         addContactBtn.style.display = 'block';
+        showListBtn.style.display='block';
       };
   
       let nameInput = document.getElementById('name');
       let numberInput = document.getElementById('number');
-      let tokenInput = document.getElementById('token');
       let addContactErrorMsg = document.getElementById('add-contact-error-msg');
   
-      addContactBtn.addEventListener('click', showAddContact);
+      showListBtn.addEventListener('click', showAddContact);
   
       document.getElementById('cancel-btn').addEventListener('click', hideAddContact);
   
@@ -211,13 +223,12 @@
         console.log(`207 messaging.ejs addEventListener`);
         let name = nameInput.value;
         let number = numberInput.value;
-        let token = tokenInput.value;
         
         if (name === '' || number === '') {
           addContactErrorMsg.innerHTML = 'Name and Number are required';
         } else {
           ws.send(JSON.stringify({
-          type: 'addContact',
+          action: 'addContact',
           name: name,
           number: number,
           token: token

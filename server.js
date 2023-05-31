@@ -17,6 +17,10 @@ wss.on('connection', (ws) => {
   ws.on('message', (msg) => {
     let data = JSON.parse(msg);
 
+    console.log(`data : ${data.mobile}`);
+
+    console.log(`20 data.action : ${data.action}`);
+
     switch (data.action) {
       // login request
       case 'login':
@@ -39,7 +43,6 @@ wss.on('connection', (ws) => {
             ws.send(JSON.stringify(info));
 
           } else {
-            console.log(`42 server.js false`);
             let info = {
               res: 'false',
               action: 'falseLogin', 
@@ -84,14 +87,13 @@ wss.on('connection', (ws) => {
             return;
           }
           
-          let mobile = decoded.id;
+          let mobile = decoded.mobile;
           let uuid = decoded.uuid;
           let name = data.name;
           let number = data.number;
           
           database.query(`INSERT INTO contacts (contact_name, contact_mobile, user_mobile, user_uuid) VALUES ('${name}', '${number}', '${mobile}', '${uuid}')`, (err, result) => {
             if (err) throw err;
-            
             ws.send('contact added');
           });
         });
