@@ -177,7 +177,7 @@ wss.on('connection', (ws) => {
           let uuid = decoded.uuid;
           let message = data.message;
           
-          database.query(`SELECT contact_mobile FROM contacts WHERE user_mobile='${mobile}' AND user_uuid='${uuid}'`, (err, results) => {
+          database.query(`SELECT contact_mobile FROM contacts WHERE user_mobile='${mobile}'`, (err, results) => {
             if (err) throw err;
           
             let contacts = results.map(function(result) {
@@ -185,7 +185,7 @@ wss.on('connection', (ws) => {
             });
             
             contacts.forEach(function(contact) {
-              database.query(`INSERT INTO messages (sender, contact_mobile, user_mobile, user_uuid, message) VALUES ('${mobile}', '${contact}', '${mobile}', '${uuid}', '${message}')`, (err, result) => {
+              database.query(`INSERT INTO messages (sender_id, contact_mobile, user_mobile, user_uuid, message) VALUES ('${mobile}', '${contact}', '${mobile}', '${uuid}', '${message}')`, (err, result) => {
                 if (err) throw err;
                 console.log(`done!`);
               });
