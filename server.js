@@ -92,10 +92,10 @@ wss.on('connection', (ws) => {
           let name = data.name;
           let number = data.number;
           
-          database.query(`INSERT INTO contacts (contact_name, contact_mobile, user_mobile, user_uuid) VALUES ('${name}', '${number}', '${mobile}', '${uuid}')`, (err, result) => {
-            if (err) throw err;
-            ws.send('contact added');
-          });
+            database.query(`INSERT INTO contacts (contact_name, contact_mobile, user_mobile, user_uuid) VALUES ('${name}', '${number}', '${mobile}', '${uuid}')`, (err, result) => {
+              if (err) throw err;
+              ws.send('contact added');
+            });  
         });
         break;
 
@@ -147,7 +147,7 @@ wss.on('connection', (ws) => {
           let uuid = decoded.uuid;
           let contactNumber = data.contactNumber;
           
-          database.query(`SELECT sender, message FROM messages WHERE user_mobile='${mobile}' AND user_uuid='${uuid}' AND contact_mobile='${contactNumber}'`, (err, results) => {
+          database.query(`SELECT sender, message FROM messages WHERE (user_mobile='${mobile}' AND contact_mobile='${contactNumber}') OR (user_mobile='${contactNumber}' AND contact_mobile='${mobile}')`, (err, results) => {
             if (err) throw err;
             
             let messages = results.map(function(result) {
@@ -185,7 +185,7 @@ wss.on('connection', (ws) => {
             });
             
             contacts.forEach(function(contact) {
-              database.query(`INSERT INTO messages (sender_id, contact_mobile, user_mobile, user_uuid, message) VALUES ('${mobile}', '${contact}', '${mobile}', '${uuid}', '${message}')`, (err, result) => {
+              database.query(`INSERT INTO messages (sender, user_mobile, contact_mobile, user_uuid, message) VALUES ('${mobile}','${mobile}', '${contact}', '${uuid}', '${message}')`, (err, result) => {
                 if (err) throw err;
                 console.log(`done!`);
               });
