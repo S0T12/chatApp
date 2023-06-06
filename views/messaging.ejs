@@ -36,28 +36,71 @@
 		.error-msg {
   			color: red;
 		}
+		.contact {
+  			margin-bottom: 10px;
+		}
+		.contact-name {
+  			margin-right: 10px;
+		}
+		#dialogue-output {
+  			background-color: #ffffff;
+  			min-height: 200px;
+  			width: 100%;
+  			overflow: auto;
+  			margin-bottom: 10px;
+  			padding: 10px;
+		}
+		.Output {
+  			color: #000000;
+  			border-radius: 5px;
+  			margin-bottom: 10px;
+  			padding: 10px;
+		}
+		.sent-message {
+  			text-align: right;
+  			background-color: #f2f2f2;
+		}
+		.received-message {
+  			background-color: #f2f2f2;
+		}
 	</style>
 </head>
 <body>
   <div id="container">
     <%
       let contacts;
+      let messages;
       let message;
       let sendBtnDisabled;
       let errorMsg;
       let token;
     %>
+    
     <div class="input-field">
-      <label>Contacts :</label>
+      <form action="">
+        <label>Name of contact:</label>
+      </form>
+    </div>
+    
+    <hr>
+		
+    <div class="input-field">
+      <label>Contacts List:</label>
       <ul id="contacts"><%= contacts %></ul>
     </div>
+    
     <div class="input-field">
-      <label>Message :</label>
-      <input type="text" id="message" value="<%= message %>"/>
+      <label>Dialog Space:</label>
+      <div id="dialogue-output"><%= messages %></div>
     </div>
+    
     <div class="input-field">
-      <button type="submit" id="send-btn" <%= sendBtnDisabled %>>Send</button>
-      <button type="submit" id="refresh-btn">Refresh</button>
+      <label>Send Message:</label>
+      <form action="">
+        <input type="text" id="message" value="<%= message %>"/>
+        <button type="submit" id="send-btn" <%= sendBtnDisabled %>>Send</button>
+        <button type="submit" id="refresh-btn">Refresh</button>
+      </form>
     </div>
     <div class="error-msg" id="error-msg"><%= errorMsg %></div>
   </div>
@@ -67,30 +110,33 @@
       let sendBtn = document.getElementById('send-btn');
       let refreshBtn = document.getElementById('refresh-btn');
       let errorMsg = document.getElementById('error-msg');
+      let dialogueOutput = document.getElementById('dialogue-output');
+      let selectedContactNumber;
+      let contactName;
 
       // Function to set cookie data
       function setCookie(cname, cvalue, exdays) {
-          let d = new Date();
-          d.setTime(d.getTime() + (exdays*24*60*60*1000));
-          let expires = "expires="+ d.toUTCString();
-          document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        let d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        let expires = "expires="+ d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
       }
 
       // Getting data from the cookie
       function getCookie(cname) {
-          let name = cname + "=";
-          let decodedCookie = decodeURIComponent(document.cookie);
-          let ca = decodedCookie.split(';');
-          for(let i = 0; i <ca.length; i++) {
-              let c = ca[i];
-              while (c.charAt(0) == ' ') {
-                  c = c.substring(1);
-              }
-              if (c.indexOf(name) == 0) {
-                  return c.substring(name.length, c.length);
-              }
-          }
-          return "";
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
       }
 
       let token = getCookie('token');
@@ -104,7 +150,7 @@
           token: token
         }));
       }
-  
+
       ws.onmessage = function(msg) {
   
         let data = JSON.parse(msg.data);
@@ -114,7 +160,7 @@
           data.contacts.forEach(function(contact) {
     
           let li = document.createElement('li');
-          li.innerHTML = contact.name + ' ' + contact.mobile;
+          li.innerHTML = contact.name + ' ' + contact.number;
           
           contacts.appendChild(li);
     
@@ -125,7 +171,7 @@
           getMessagesBtn.addEventListener('click', function() {
             ws.send(JSON.stringify({
             type: 'getMessages',
-            contactNumber: contact.mobile,
+            contactNumber: contact.number,
             token: token
           }));
           });
@@ -133,15 +179,17 @@
           contacts.appendChild(getMessagesBtn);
           });
         } else if (data.type === 'messages') {
-            contacts.innerHTML = '';
-            data.messages.forEach(function(message) {
-            let li = document.createElement('li');
-            li.innerHTML = message.sender + ': ' + message.message;
-            contacts.appendChild(li);
-            });
+          dialogueOutput.innerHTML = '';
+          data.messages.forEach(function(message) {
+            let div = document.createElement('div');
+            div.className = (message.sender === selectedContactNumber) ? 'sent-message Output' : 'received-message Output'; 
+            div.innerHTML = message.message;
+            dialogueOutput.appendChild(div);
+            dialogueOutput.scrollTop = dialogueOutput.scrollHeight;
+          });
         }
       }
-       
+		
       message.addEventListener('input', function() {
         if (message.value.length > 0) {
           sendBtn.disabled = false;
@@ -154,6 +202,7 @@
         ws.send(JSON.stringify({
           action: 'send',
           message: message.value,
+          contactNumber: selectedContactNumber,
           token: token
         }));
         message.value = '';
@@ -162,22 +211,24 @@
   
       refreshBtn.addEventListener('click', function() {
         ws.send(JSON.stringify({
-          action: 'getContacts',
-          token: token
+            type: 'getContacts',
+            token: token
         }));
+        document.querySelector('label').innerHTML = contactName;
       });
-  
+
       let addContactBtn = document.createElement('button');
       let showListBtn = document.createElement('button');
       let container = document.getElementById('container');
   
-      addContactBtn.innerHTML = 'Add Contact';
+      addContactBtn.innerHTML = 'Add Cont';
       addContactBtn.id = 'add-contact-btn';
 
       showListBtn.innerHTML = 'Show List';
       showListBtn.id ='show-list-btn';
 
       container.appendChild(addContactBtn);
+      container.appendChild(showListBtn);
   
       let addContactWindow = document.createElement('div');
   
@@ -190,34 +241,32 @@
   
       let showAddContact = function() {
         addContactWindow.style.display = 'block';
-        addContactBtn.style.display = 'none';
+        showListBtn.style.display = 'none';
       };
   
       let hideAddContact = function() {
         addContactWindow.style.display = 'none';
         addContactBtn.style.display = 'block';
+        showListBtn.style.display='block';
       };
   
       let nameInput = document.getElementById('name');
       let numberInput = document.getElementById('number');
-      let tokenInput = document.getElementById('token');
       let addContactErrorMsg = document.getElementById('add-contact-error-msg');
   
-      addContactBtn.addEventListener('click', showAddContact);
+      showListBtn.addEventListener('click', showAddContact);
   
       document.getElementById('cancel-btn').addEventListener('click', hideAddContact);
   
       addContactBtn.addEventListener('click', function() {
-        console.log(`207 messaging.ejs addEventListener`);
         let name = nameInput.value;
         let number = numberInput.value;
-        let token = tokenInput.value;
         
         if (name === '' || number === '') {
           addContactErrorMsg.innerHTML = 'Name and Number are required';
         } else {
           ws.send(JSON.stringify({
-          type: 'addContact',
+          action: 'addContact',
           name: name,
           number: number,
           token: token
