@@ -63,6 +63,11 @@
 		.received-message {
   			background-color: #f2f2f2;
 		}
+    #show-list-btn {
+      position: absolute;
+      bottom: 29.4%;
+      left: 47%;
+    }
 	</style>
 </head>
 <body>
@@ -77,9 +82,9 @@
     %>
     
     <div class="input-field">
-      <form action="">
+      <div id="mainContainer">
         <label>Name of contact:</label>
-      </form>
+      </div>
     </div>
     
     <hr>
@@ -96,7 +101,7 @@
     
     <div class="input-field">
       <label>Send Message:</label>
-      <form action="">
+      <form>
         <input type="text" id="message" value="<%= message %>"/>
         <button type="submit" id="send-btn" <%= sendBtnDisabled %>>Send</button>
         <button type="submit" id="refresh-btn">Refresh</button>
@@ -215,23 +220,34 @@
         document.querySelector('label').innerHTML = contactName;
       });
 
-      let addContactBtn = document.createElement('button');
+      let container = document.getElementById('mainContainer');
       let showListBtn = document.createElement('button');
-      let container = document.getElementById('container');
-  
-      addContactBtn.innerHTML = 'Add Cont';
-      addContactBtn.id = 'add-contact-btn';
 
       showListBtn.innerHTML = 'Show List';
-      showListBtn.id ='show-list-btn';
+      showListBtn.id ='show-list-btn'
+      showListBtn.type = "button";
 
-      container.appendChild(addContactBtn);
       container.appendChild(showListBtn);
   
       let addContactWindow = document.createElement('div');
   
-      addContactWindow.innerHTML = '<div class="input-field">' + '<label>Name:</label>' + '<input type="text" id="name">' + '</div>' + '<div class="input-field">' + '<label>Number:</label>' + '<input type="text" id="number">' + '</div>' + '<div class="input-field">' + '<button type="submit" id="add-contact-btn">Add Contact</button>' + '<button type="submit" id="cancel-btn">Cancel</button>' + '</div>' + '<input type="hidden" id="token" value="' + token + '">' + '<div class="error-msg" id="add-contact-error-msg"></div>';
-  
+      addContactWindow.innerHTML = 
+      '<div class="input-field">' +
+        '<label>Name:</label>' +
+        '<input type="text" id="name">' +
+      '</div>' +
+      '<div class="input-field">' +
+        '<label>Number:</label>' +
+        '<input type="text" id="number">' +
+      '</div>' +
+      '<div class="input-field">' +
+        '<button type="button" id="addContactButton">Add Contact</button>' +
+        '<button type="submit" id="cancel-btn">Cancel</button>' +
+      '</div>' +
+      '<input type="hidden" id="token" value="' + token +'">' +
+      '<div class="error-msg" id="add-contact-error-msg"></div>';
+
+      
       addContactWindow.id = 'add-contact-window';
       addContactWindow.style.display = 'none';
   
@@ -254,9 +270,9 @@
   
       showListBtn.addEventListener('click', showAddContact);
   
-      document.getElementById('cancel-btn').addEventListener('click', hideAddContact);
-  
-      addContactBtn.addEventListener('click', function() {
+      let addContactButton = document.getElementById('addContactButton');
+
+      addContactButton.addEventListener('click', function() {
         let name = nameInput.value;
         let number = numberInput.value;
         
@@ -275,8 +291,8 @@
           numberInput.value = '';
           hideAddContact();
         }
-      });  
-      
+      });   
+
       let cancelBtn = document.getElementById('cancel-btn');
       cancelBtn.addEventListener('click', hideAddContact);
     </script>

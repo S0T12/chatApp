@@ -71,9 +71,9 @@ module.exports = function startWebsocketServer () {
             }
           });
           break;
-  
+
         // messaging request
-        case 'addContact':        
+        case 'addContact':
           jwt.verify(data.token, secretOrPrivateKey, (err, decoded) => {
             if (err) {
               ws.send('invalid token');
@@ -85,13 +85,37 @@ module.exports = function startWebsocketServer () {
             let name = data.name;
             let number = data.number;
             
-              database.query(`INSERT INTO contacts (contact_name, contact_mobile, user_mobile, user_uuid) VALUES ('${name}', '${number}', '${mobile}', '${uuid}')`, (err, result) => {
-                if (err) throw err;
-                ws.send('contact added');
-              });  
+            database.query(`INSERT INTO contacts (contact_name, contact_mobile, user_mobile, user_uuid) VALUES ('${name}', '${number}', '${mobile}', '${uuid}')`, (err, result) => {
+              if (err) throw err;
+            console.log('add contact done!');
+            });
+
+            database.query(`SELECT contact_name, contact_mobile FROM contacts WHERE user_mobile='${mobile}'`, (err, results) => {
+              console.log(results);
+              if (err) {
+                console.log(err);
+                ws.send(JSON.stringify({
+                  type: 'contacts',
+                  contacts: []
+                }));
+                return;
+              }
+            
+              let contacts = results.map(function(result) {
+                return {
+                  name: result.contact_name,
+                  number: result.contact_mobile
+                }
+              });
+              
+              ws.send(JSON.stringify({
+              type: 'contacts',
+              contacts: contacts
+              }));
+            });
           });
           break;
-  
+
         // messaging request
         case 'getContacts':
           jwt.verify(data.token, secretOrPrivateKey, (err, decoded) => {
@@ -166,7 +190,7 @@ module.exports = function startWebsocketServer () {
               return;
             }
             
-            let mobile = decoded.mobile;
+            let mobile = decoded.mobile;  
             let uuid = decoded.uuid;
             let message = data.message;
             
@@ -182,9 +206,23 @@ module.exports = function startWebsocketServer () {
                   if (err) throw err;
                   console.log(`done!`);
                 });
+                
+                database.query(`SELECT sender, message FROM messages WHERE (user_mobile='${mobile}' AND contact_mobile='${contact}') OR (user_mobile='${contact}' AND contact_mobile='${mobile}')`, (err, results) => {
+                  if (err) throw err;
+                  
+                  let messages = results.map(function(result) {
+                    return {
+                      sender: result.sender,
+                      message: result.message
+                    }
+                  });
+                  
+                  ws.send(JSON.stringify({
+                  type: 'messages',
+                  messages: messages
+                  }));
+                });
               });
-            
-              ws.send('message sent');
             });
           });
           break;
