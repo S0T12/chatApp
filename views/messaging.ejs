@@ -65,8 +65,8 @@
 		}
     #show-list-btn {
       position: absolute;
-      bottom: 29.4%;
-      left: 47%;
+      top: 70%;
+      right: 30%;
     }
 	</style>
 </head>
@@ -108,6 +108,7 @@
       </form>
     </div>
     <div class="error-msg" id="error-msg"><%= errorMsg %></div>
+
   </div>
     <script>
       let contacts = document.getElementById('contacts');
@@ -200,7 +201,7 @@
           sendBtn.disabled = true;
         }
       });
-  
+
       sendBtn.addEventListener('click', function() {
         ws.send(JSON.stringify({
           action: 'send',
@@ -224,7 +225,7 @@
       let showListBtn = document.createElement('button');
 
       showListBtn.innerHTML = 'Show List';
-      showListBtn.id ='show-list-btn'
+      showListBtn.id ='show-list-btn';
       showListBtn.type = "button";
 
       container.appendChild(showListBtn);
@@ -255,13 +256,13 @@
   
       let showAddContact = function() {
         addContactWindow.style.display = 'block';
-        showListBtn.style.display = 'none';
+        // showListBtn.style.display = 'none';
       };
   
       let hideAddContact = function() {
         addContactWindow.style.display = 'none';
         addContactBtn.style.display = 'block';
-        showListBtn.style.display='block';
+        // showListBtn.style.display='block';
       };
   
       let nameInput = document.getElementById('name');
@@ -278,23 +279,29 @@
         
         if (name === '' || number === '') {
           addContactErrorMsg.innerHTML = 'Name and Number are required';
+        } else if (number ==! 11) {
+          addContactErrorMsg.innerHTML = 'The number must be 11 digits';
         } else {
-          ws.send(JSON.stringify({
-          action: 'addContact',
-          name: name,
-          number: number,
-          token: token
-          }));
-          
-          addContactErrorMsg.innerHTML = '';
-          nameInput.value = '';
-          numberInput.value = '';
-          hideAddContact();
-        }
-      });   
+            ws.send(JSON.stringify({
+            action: 'addContact',
+            name: name,
+            number: number,
+            token: token
+            }));
+            
+            addContactErrorMsg.innerHTML = '';
+            nameInput.value = '';
+            numberInput.value = '';
+            hideAddContact();
+          }
+        });   
 
       let cancelBtn = document.getElementById('cancel-btn');
       cancelBtn.addEventListener('click', hideAddContact);
+    
+      let mainContainer = document.getElementById('mainContainer');
+      let bottomContainer = document.getElementById('container');
+      bottomContainer.appendChild(document.querySelector('#add-contact-window')); 
     </script>
 </body>
 </html>
