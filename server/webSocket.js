@@ -99,7 +99,7 @@ module.exports = function startWebsocketServer () {
               ws.send('invalid token');
               return;
             }
-            
+            console.log('hellowoeld');
             let mobile = decoded.mobile;
             
             database.query(`SELECT contact_name, contact_mobile FROM contacts WHERE user_mobile='${mobile}'`, (err, results) => {
