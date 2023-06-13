@@ -65,7 +65,7 @@
 		}
     #show-list-btn {
       position: absolute;
-      top: 70%;
+      top: 40%;
       right: 30%;
     }
 	</style>
@@ -187,7 +187,8 @@
           data.messages.forEach(function(message) {
             let div = document.createElement('div');
             div.className = (message.sender === selectedContactNumber) ? 'sent-message Output' : 'received-message Output'; 
-            div.innerHTML = message.message;
+            let date = new Date(message.created_date);
+            div.innerHTML = `${message.message}<br><span class='msg-created-date' style="font-size:10px;">${date.toLocaleTimeString()} | ${date.toLocaleDateString()}</span>`;
             dialogueOutput.appendChild(div);
             dialogueOutput.scrollTop = dialogueOutput.scrollHeight;
           });
