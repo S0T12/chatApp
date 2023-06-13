@@ -1,0 +1,26 @@
+CREATE TABLE users (
+  id INT NOT NULL AUTO_INCREMENT,
+  mobile VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  uuid VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE contacts (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  contact_name VARCHAR(255),
+  contact_mobile VARCHAR(255),
+  user_mobile VARCHAR(255),
+  user_uuid VARCHAR(255)
+);
+
+CREATE TABLE messages (
+  id INT NOT NULL AUTO_INCREMENT,
+  contact_mobile VARCHAR(11) NOT NULL,
+  user_mobile VARCHAR(255) NOT NULL,
+  user_uuid VARCHAR(255) NOT NULL,
+  message TEXT,
+  sender VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+);
