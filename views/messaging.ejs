@@ -3,70 +3,131 @@
 <head>
 	<title>Messaging Page</title>
 	<style>
-		body {
-  			background-color: #f2f2f2;
-  			font-family: sans-serif;
-		}
-		#container {
-  			width: 480px;
-  			margin: auto;
-		}
-		.input-field {
-  			width: 100%;
-  			margin-top: 20px;
-  			margin-bottom: 20px;
-		}
-		.input-field input {
-  			width: 100%;
-  			height: 30px;
-  			padding: 0 10px;
-  			border: 1px solid #ccc;
-  			outline: none;
-		}
-		.input-field button {
-  			background-color: #4CAF50;
-  			border: none;
-  			color: white;
-  			padding: 10px 20px;
-  			text-align: center;
-  			text-decoration: none;
-  			cursor: pointer;
-  			outline: none;
-		}
-		.error-msg {
-  			color: red;
-		}
-		.contact {
-  			margin-bottom: 10px;
-		}
-		.contact-name {
-  			margin-right: 10px;
-		}
-		#dialogue-output {
-  			background-color: #ffffff;
-  			min-height: 200px;
-  			width: 100%;
-  			overflow: auto;
-  			margin-bottom: 10px;
-  			padding: 10px;
-		}
-		.Output {
-  			color: #000000;
-  			border-radius: 5px;
-  			margin-bottom: 10px;
-  			padding: 10px;
-		}
-		.sent-message {
-  			text-align: right;
-  			background-color: #f2f2f2;
-		}
-		.received-message {
-  			background-color: #f2f2f2;
-		}
-    #show-list-btn {
-      position: absolute;
-      top: 40%;
-      right: 30%;
+    body {
+      background-color: #f2f2f2;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Container styles */
+    #container {
+      background-color: #fff;
+      margin: 20px auto;
+      padding: 20px;
+      width: 400px;
+    }
+
+    /* Header styles */
+    #mainContainer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Contact list styles */
+    #contacts {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .contact {
+      cursor: pointer;
+      padding: 5px 0;
+    }
+
+    .contact:hover {
+      background-color: #f2f2f2;
+    }
+
+    /* Dialogue output styles */
+    #dialogue-output {
+      background-color: #f2f2f2;
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 200px;
+      overflow-y: scroll;
+    }
+
+    .sent-message {
+      background-color: #e2f3ff;
+      padding: 5px;
+      margin-bottom: 5px;
+      text-align: right;
+    }
+
+    .received-message {
+      background-color: #f7f7f7;
+      padding: 5px;
+      margin-bottom: 5px;
+      text-align: left;
+    }
+
+    .msg-created-date {
+      color: #999;
+    }
+
+    /* Input field styles */
+    .input-field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 5px 10px;
+      border: none;
+      color: #fff;
+      background-color: #007bff;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .error-msg {
+      color: #ff0000;
+      margin-top: 5px;
+    }
+
+    /* Bottom container styles */
+    #bottomContainer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    #send-btn {
+      margin-bottom: 10px;
+      background-color: #17a2b8;
+    }
+
+    #logout-btn {
+      background-color: #dc3545;
+    }
+
+    .center-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .center-buttons button {
+      margin: 0 10px;
     }
 	</style>
 </head>
@@ -110,6 +171,13 @@
     <div class="error-msg" id="error-msg"><%= errorMsg %></div>
 
   </div>
+
+  <div id="belowDiv" class="center-buttons">
+    <button type="button" id="show-list-btn">Show List</button>
+    <div>
+      <button type="button" id="logout-btn">Logout</button>
+    </div>
+  </div>
     <script>
       let contacts = document.getElementById('contacts');
       let message = document.getElementById('message');
@@ -145,7 +213,18 @@
         return "";
       }
 
+      // delete cookie
+      function deleteCookie(name) {
+        document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      }
+
       let token = getCookie('token');
+      
+      if (!token || token === undefined) {
+        alert('You are not logged into your account!');
+        window.location.href = "http://localhost:3000/";
+        document.errorMsg = 'You are not logged into your account!';
+      }
     
       let ws = new WebSocket('ws://localhost:8080');
   
@@ -222,15 +301,9 @@
         document.querySelector('label').innerHTML = contactName;
       });
 
-      let container = document.getElementById('mainContainer');
-      let showListBtn = document.createElement('button');
+      let showListBtn = document.getElementById('show-list-btn');
+      let logOutBtn = document.getElementById('logout-btn');
 
-      showListBtn.innerHTML = 'Show List';
-      showListBtn.id ='show-list-btn';
-      showListBtn.type = "button";
-
-      container.appendChild(showListBtn);
-  
       let addContactWindow = document.createElement('div');
   
       addContactWindow.innerHTML = 
@@ -257,13 +330,11 @@
   
       let showAddContact = function() {
         addContactWindow.style.display = 'block';
-        // showListBtn.style.display = 'none';
       };
   
       let hideAddContact = function() {
         addContactWindow.style.display = 'none';
         addContactBtn.style.display = 'block';
-        // showListBtn.style.display='block';
       };
   
       let nameInput = document.getElementById('name');
@@ -273,6 +344,11 @@
       showListBtn.addEventListener('click', showAddContact);
   
       let addContactButton = document.getElementById('addContactButton');
+
+      logOutBtn.addEventListener('click', () => {
+        deleteCookie('token');
+        window.location.href = "http://localhost:3000/";
+      });
 
       addContactButton.addEventListener('click', function() {
         let name = nameInput.value;
