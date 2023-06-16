@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Messaging Page</title>
 	<style>
     body {
@@ -10,7 +13,6 @@
       padding: 0;
     }
 
-    /* Container styles */
     #container {
       background-color: #fff;
       margin: 20px auto;
@@ -18,13 +20,11 @@
       width: 400px;
     }
 
-    /* Header styles */
     #mainContainer {
       text-align: center;
       margin-bottom: 20px;
     }
 
-    /* Contact list styles */
     #contacts {
       list-style-type: none;
       padding: 0;
@@ -40,7 +40,6 @@
       background-color: #f2f2f2;
     }
 
-    /* Dialogue output styles */
     #dialogue-output {
       background-color: #f2f2f2;
       border: 1px solid #ccc;
@@ -67,7 +66,6 @@
       color: #999;
     }
 
-    /* Input field styles */
     .input-field {
       margin-bottom: 20px;
     }
@@ -103,7 +101,6 @@
       margin-top: 5px;
     }
 
-    /* Bottom container styles */
     #bottomContainer {
       display: flex;
       justify-content: space-between;
@@ -168,12 +165,16 @@
         <button type="submit" id="refresh-btn">Refresh</button>
       </form>
     </div>
-    <div class="error-msg" id="error-msg"><%= errorMsg %></div>
+    
+    <div class="input-field">
+      <button type="button" id="edit-contact-btn">Edit Contact Name</button>
+    </div>
 
+    <div class="error-msg" id="error-msg"><%= errorMsg %></div>
   </div>
 
   <div id="belowDiv" class="center-buttons">
-    <button type="button" id="show-list-btn">Show List</button>
+    <button type="button" id="show-list-btn">Show Add Contact List</button>
     <div>
       <button type="button" id="logout-btn">Logout</button>
     </div>
@@ -301,6 +302,75 @@
         document.querySelector('label').innerHTML = contactName;
       });
 
+      let editContactWindow = document.createElement('div');
+
+      editContactWindow.innerHTML = 
+      '<div class="input-field">' +
+        '<label>Name:</label>' +
+        '<input type="text" id="editName">' +
+      '</div>' +
+      '<div class="input-field">' +
+        '<label>Number:</label>' +
+        '<input type="text" id="editNumber" disabled>' +
+      '</div>' +
+      '<div class="input-field">' +
+        '<button type="button" id="saveEditButton">Save</button>' +
+        '<button type="submit" id="cancel-btn-edit">Cancel</button>' +
+      '</div>' +
+      '<input type="hidden" id="token" value="' + token +'">' +
+      '<div class="error-msg" id="edit-contact-error-msg"></div>';
+
+      editContactWindow.id = 'edit-contact-window';
+      editContactWindow.style.display = 'none';
+
+      container.appendChild(editContactWindow);
+
+      let showEditContact = function() {
+        editContactWindow.style.display = 'block';
+      };
+
+      let hideEditContact = function() {
+        editContactWindow.style.display = 'none';
+        editContactBtn.style.display = 'block';
+      };
+
+      let editNameInput = document.getElementById('editName');
+      let editNumberInput = document.getElementById('editNumber');
+      let editContactErrorMsg = document.getElementById('edit-contact-error-msg');
+
+      let errorMsgDiv = document.createElement('div');
+      errorMsgDiv.style.marginTop = '30px';
+
+  
+      let editContactBtn = document.getElementById('edit-contact-btn');
+
+      editContactBtn.addEventListener('click', () => {
+          if (selectedContactNumber === undefined || selectedContactNumber === null) {
+                errorMsg.innerHTML = 'Please select a contact to edit.';
+          } else {
+            errorMsg.innerHTML = '';
+            let editNumberInput = document.getElementById('editNumber');
+            editNumberInput.value = selectedContactNumber;
+            showEditContact();
+          }
+      });
+  
+      let saveEditButton = document.getElementById('saveEditButton');
+
+      saveEditButton.addEventListener('click', () => {
+        ws.send(JSON.stringify({
+          action: "updateContactName",
+          contactMobile: editNumberInput.value,
+          newName: editNameInput.value,
+          token: token
+        }));
+        hideEditContact();
+      });
+
+      editContactWindow.addEventListener('click', () => {
+        editNumberInput.value = selectedContactNumber;
+      });
+      
       let showListBtn = document.getElementById('show-list-btn');
       let logOutBtn = document.getElementById('logout-btn');
 
@@ -374,7 +444,10 @@
         });   
 
       let cancelBtn = document.getElementById('cancel-btn');
-      cancelBtn.addEventListener('click', hideAddContact);
+      cancelBtn.addEventListener('click', hideAddContact,);
+
+      let cancelBtnEdit = document.getElementById('cancel-btn-edit');
+      cancelBtnEdit.addEventListener('click', hideEditContact);
     
       let mainContainer = document.getElementById('mainContainer');
       let bottomContainer = document.getElementById('container');
