@@ -230,7 +230,6 @@
       let ws = new WebSocket('ws://localhost:8080');
   
       ws.onopen = function() {
-        console.log('Connection established');
         ws.send(JSON.stringify({
           action: "getContacts",
           token: token
@@ -248,16 +247,17 @@
             let li = document.createElement('li');
 
             li.className = 'contact';
-            li.innerHTML = '<span class="contact-name">' + contact.name + '</span>' + contact.number;
+            li.innerHTML = '<span class="contact-name">' + contact.name + " " +  '</span>' + contact.number;
+
             li.addEventListener('click', function() {
-              selectedContactNumber = contact.number;
-              contactName = contact.name;
-              document.querySelector('label').innerHTML = contactName;
-              ws.send(JSON.stringify({
-                action: "getMessages",
-                contactNumber: contact.number,
-                token: token
-              }));
+                selectedContactNumber = contact.number;
+                contactName = contact.name;
+                document.querySelector('label').innerHTML = contactName;
+                ws.send(JSON.stringify({
+                  action: "getMessages",
+                  contactNumber: contact.number,
+                  token: token
+                }));
             });
 
             contacts.appendChild(li);

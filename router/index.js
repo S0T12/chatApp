@@ -2,7 +2,7 @@ const express = require('express');
 
 const app = express();
 
-const port = process.env.port || 3000;
+const PORT = process.env.port || 3000;
 
 app.engine('ejs', require('ejs').renderFile);
 app.set('view engine', 'ejs');
@@ -19,6 +19,6 @@ app.get('/messaging/', (req, res) => {
   res.render('messaging');
 });
 
-app.listen(port, () => {
-  console.log(`server is running on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`server is running on port ${PORT}`);
 });

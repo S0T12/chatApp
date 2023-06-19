@@ -1,9 +1,13 @@
 const WebSocket = require('ws');
-const jwt = require('jsonwebtoken');
-const database = require('../database');
-const uuid = require('uuid');
+const loginCase = require('./login');
+const registerCase = require('./register');
+const addContactCase = require('./addContacts');
+const getContactsCase = require('./getContacts');
+const getMessagesCase = require('./getMessages');
+const sendCase = require('./send');
+const updateContactNameCase = require('./updateContactName');
+const jwtVerifyCase = require('./jwtVerify');
 
-const secretOrPrivateKey = 'helloWorld';
 
 
 module.exports = function startWebsocketServer () {
@@ -13,297 +17,38 @@ module.exports = function startWebsocketServer () {
   wss.on('connection', (ws) => {
     ws.on('message', (msg) => {
       let data = JSON.parse(msg);
-  
+      
       switch (data.action) {
-        // login request
         case 'login':
-          database.query(`SELECT * FROM users WHERE mobile=? and password=?`, [data.mobile, data.password], (err, result) => {
-            if (err) throw err;
-  
-            if (result.length > 0) {
-              const uuid = result[0].uuid;
-              let token = jwt.sign({
-                mobile: data.mobile,
-                uuid: uuid,
-                }, secretOrPrivateKey, {
-                expiresIn: '7d'
-              });
-              
-              let info = {
-                token: token,
-                action: "token"
-              }
-              ws.send(JSON.stringify(info));
-  
-            } else {
-              let info = {
-                res: 'false',
-                action: 'falseLogin', 
-              }
-              ws.send(JSON.stringify(info));
-            }
-          });
+          loginCase(ws, data);
           break;
         
-        // register request
         case 'register':
-          let uuidValue = uuid.v4();
-      
-          database.query(`SELECT * FROM users WHERE mobile=${data.mobile}`, (err, result) => {
-            if(err) throw err;
-            let info;
-            if(result.length > 0) {
-              info = {
-                res: 'false',
-                action: 'falseRegister',
-              }
-              ws.send(JSON.stringify(info));
-            } else {
-              database.query(`INSERT INTO users (mobile, password, uuid) VALUES (${data.mobile}, '${data.password}', '${uuidValue}')`, (err, result) => {
-                if(err) throw err;
-                
-                info = {
-                  res: 'true',
-                  action: 'doneRegister',
-                }
-                ws.send(JSON.stringify(info));
-              });
-            }
-          });
+          registerCase(ws, data);
           break;
 
-        // messaging request
         case 'addContact':
-          jwt.verify(data.token, secretOrPrivateKey, (err, decoded) => {
-            if (err) {
-              ws.send('invalid token');
-              return;
-            }
-            
-            let mobile = decoded.mobile;
-            let uuid = decoded.uuid;
-            let name = data.name;
-            let number = data.number;
-            
-            database.query(`INSERT INTO contacts (contact_name, contact_mobile, user_mobile, user_uuid) VALUES ('${name}', '${number}', '${mobile}', '${uuid}')`, (err, result) => {
-              if (err) throw err;
-            console.log('add contact done!');
-            });
-
-            database.query(`SELECT contact_name, contact_mobile FROM contacts WHERE user_mobile='${mobile}'`, (err, results) => {
-              console.log(results);
-              if (err) {
-                console.log(err);
-                ws.send(JSON.stringify({
-                  type: 'contacts',
-                  contacts: []
-                }));
-                return;
-              }
-            
-              let contacts = results.map(function(result) {
-                return {
-                  name: result.contact_name,
-                  number: result.contact_mobile
-                }
-              });
-              
-              ws.send(JSON.stringify({
-              type: 'contacts',
-              contacts: contacts
-              }));
-            });
-          });
+          addContactCase(ws, data);
           break;
 
-        // messaging request
         case 'getContacts':
-          jwt.verify(data.token, secretOrPrivateKey, (err, decoded) => {
-            if (err) {
-              ws.send('invalid token');
-              return;
-            }
-            
-            let mobile = decoded.mobile;
-            
-            database.query(`SELECT contact_name, contact_mobile FROM contacts WHERE user_mobile='${mobile}'`, (err, results) => {
-              console.log(results);
-              if (err) {
-                console.log(err);
-                ws.send(JSON.stringify({
-                  type: 'contacts',
-                  contacts: []
-                }));
-                return;
-              }
-            
-              let contacts = results.map(function(result) {
-                return {
-                  name: result.contact_name,
-                  number: result.contact_mobile
-                }
-              });
-              
-              ws.send(JSON.stringify({
-              type: 'contacts',
-              contacts: contacts
-              }));
-            });
-          });
+          getContactsCase(ws, data);
           break;
   
-        // messaging request
         case 'getMessages':
-          jwt.verify(data.token, secretOrPrivateKey, (err, decoded) => {
-            if (err) {
-              ws.send('invalid token');
-              return;
-            }
-            
-            let mobile = decoded.mobile;
-            let uuid = decoded.uuid;
-            let contactNumber = data.contactNumber;
-            
-            database.query(`SELECT sender, message, DATE_FORMAT(created_at, '%b %e, %Y %H:%i') as created_date FROM messages WHERE (user_mobile='${mobile}' AND contact_mobile='${contactNumber}') OR (user_mobile='${contactNumber}' AND contact_mobile='${mobile}')`, (err, results) => {
-              if (err) throw err;
-              
-              let messages = results.map(function(result) {
-                return {
-                  sender: result.sender,
-                  message: result.message, 
-                  created_date: result.created_date
-                }
-              });
-              
-              ws.send(JSON.stringify({
-              type: 'messages',
-              messages: messages
-              }));
-            });
-          });
+          getMessagesCase(ws, data);
           break;
   
-        // messaging request
-        case 'send':        
-          jwt.verify(data.token, secretOrPrivateKey, (err, decoded) => {
-            if (err) {
-              ws.send('invalid token');
-              return;
-            }
-            
-            let mobile = decoded.mobile;  
-            let uuid = decoded.uuid;
-            let message = data.message;
-            
-            database.query(`SELECT contact_mobile FROM contacts WHERE user_mobile='${mobile}'`, (err, results) => {
-              if (err) throw err;
-            
-              let contacts = results.map(function(result) {
-                return result.contact_mobile;
-              });
-              
-              contacts.forEach(function(contact) {
-                database.query(`INSERT INTO messages (sender, user_mobile, contact_mobile, user_uuid, message) VALUES ('${mobile}','${mobile}', '${contact}', '${uuid}', '${message}')`, (err, result) => {
-                  if (err) throw err;
-                  console.log(`done!`);
-                });
-                
-                database.query(`SELECT sender, message FROM messages WHERE (user_mobile='${mobile}' AND contact_mobile='${contact}') OR (user_mobile='${contact}' AND contact_mobile='${mobile}')`, (err, results) => {
-                  if (err) throw err;
-                  
-                  let messages = results.map(function(result) {
-                    return {
-                      sender: result.sender,
-                      message: result.message
-                    }
-                  });
-                  
-                  ws.send(JSON.stringify({
-                  type: 'messages',
-                  messages: messages
-                  }));
-                });
-              });
-            });
-          });
+        case 'send':
+          sendCase(ws, data);
           break;
           
-          // update contact name
           case 'updateContactName':
-            jwt.verify(data.token, secretOrPrivateKey, (err, decoded) => {
-              if (err) {
-                ws.send('invalid token');
-                return;
-              }
-    
-              const mobile = decoded.mobile;
-              const contactMobile = data.contactMobile;
-              const newName = data.newName;
-    
-              database.query(
-                `UPDATE contacts SET contact_name = '${newName}' WHERE user_mobile = '${mobile}' AND contact_mobile = '${contactMobile}'`,
-                (err, result) => {
-                  if (err) throw err;
-
-                  if (result.affectedRows > 0) {
-                    database.query(`SELECT contact_name, contact_mobile FROM contacts WHERE user_mobile='${mobile}'`, (err, results) => {
-                      console.log(results);
-                      if (err) {
-                        console.log(err);
-                        ws.send(JSON.stringify({
-                          type: 'contacts',
-                          contacts: []
-                        }));
-                        return;
-                      }
-                    
-                      let contacts = results.map(function(result) {
-                        return {
-                          name: result.contact_name,
-                          number: result.contact_mobile
-                        }
-                      });
-                      
-                      ws.send(JSON.stringify({
-                      type: 'contacts',
-                      contacts: contacts
-                      }));
-                    });
-                  }
-                }
-              );
-            });
+            updateContactNameCase(ws, data);
             break;
   
-        // jwt verification request
         case 'jwtVerify':
-          let result;
-          try {
-            result = jwt.verify(data.token, secretOrPrivateKey);
-          } catch(err) {
-            console.log(err);
-  
-            let data = {
-              result: "false",
-              action: "jwt"
-            }
-            ws.send(JSON.stringify(data));
-            return;
-          }
-  
-          if (result) {
-            let data = {
-              result: "true",
-              action: "jwt"
-            }
-            ws.send(JSON.stringify(data));
-          } else {
-            let data = {
-              result: "false",
-              action: "jwt"
-            }
-            ws.send(JSON.stringify(data));
-          }
+          jwtVerifyCase(ws, data);
           break;
       }
     });

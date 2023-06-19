@@ -72,29 +72,29 @@
 		let errorMsg = document.getElementById('error-msg');
 
 		mobile.addEventListener('input', () => {
-            if (mobile.value.length == 11) {
-                if (password.value.length > 0) {
+			if (mobile.value.length == 11) {
+				if (password.value.length > 0) {
 					loginBtn.disabled = false;
-                }
-            } else {
-                loginBtn.disabled = true;
-            }
-        });
+				}
+			} else {
+				loginBtn.disabled = true;
+			}
+		});
 
-        password.addEventListener('input', () => {
-            if (password.value.length > 0) {
-                if (mobile.value.length == 11) {
-                    loginBtn.disabled = false;
-                }
-            } else {
-                loginBtn.disabled = true;
-            }
-        });
+		password.addEventListener('input', () => {
+			if (password.value.length > 0) {
+				if (mobile.value.length == 11) {
+					loginBtn.disabled = false;
+				}
+			} else {
+				loginBtn.disabled = true;
+			}
+		});
 
-        registerButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            location.href = '<%= "http://localhost:3000/signup" %>';
-        });
+		registerButton.addEventListener('click', (e) => {
+			e.preventDefault();
+			location.href = '<%= "http://localhost:3000/signup" %>';
+		});
 
 
 		let ws = new WebSocket('ws://localhost:8080');
@@ -122,7 +122,7 @@
 			return JSON.parse(jsonPayload);
 		};
 
-		
+
 		ws.onmessage = (msg) => {
 			let data = JSON.parse(msg.data);	
 
@@ -145,11 +145,10 @@
 				case "jwt":
 					
 					if (data.result === 'false') {
-						console.log(`140 messaging.ejs false`);
 						errorMsg.innerHTML = 'mobile or password incorrect!';
 					} else if (data.result === 'true') {
 						try {
-     					document.cookie = "token=" + token;
+						document.cookie = "token=" + token;
 						let data = jwt_decode(token);
 						location.href = `<%= "http://localhost:3000/messaging/"%>`;
 						} catch (err) {
