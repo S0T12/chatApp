@@ -15,7 +15,7 @@ module.exports = function sendCase(ws, data) {
         let uuid = decoded.uuid;
         let message = data.message;
         
-        database.query(`SELECT contact_mobile FROM contacts WHERE user_mobile = '${mobile}'`, (err, results) => {
+        database.query(`SELECT contact_mobile FROM contacts WHERE user_mobile =?`, [mobile], (err, results) => {
           if (err) throw err;
         
           let contacts = results.map(function(result) {
@@ -23,7 +23,7 @@ module.exports = function sendCase(ws, data) {
           });
           
           contacts.forEach(function(contact) {
-             database.query(`INSERT INTO messages (sender, user_mobile, contact_mobile, user_uuid, message) VALUES ('${mobile}','${mobile}', '${contact}', '${uuid}', '${message}')`,(err, result) => {
+            database.query(`INSERT INTO messages (sender, user_mobile, contact_mobile, user_uuid, message) VALUES (?, ?, ?, ?, ?)`, [mobile, mobile, contact, uuid, message], (err, result) => {
               if (err)
                 throw err;
               console.log(`done!`);

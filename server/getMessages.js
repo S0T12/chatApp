@@ -12,7 +12,7 @@ module.exports = function getMessagesCase(ws, data) {
         let uuid = decoded.uuid;
         let contactNumber = data.contactNumber;
         
-        database.query(`SELECT sender, message, DATE_FORMAT(created_at, '%b %e, %Y %H:%i:%s') as created_date FROM messages WHERE (user_mobile='${mobile}' AND contact_mobile='${contactNumber}') OR (user_mobile='${contactNumber}' AND contact_mobile='${mobile}')`, (err, results) => {
+        database.query(`SELECT sender, message, DATE_FORMAT(created_at, '%b %e, %Y %H:%i:%s') as created_date FROM messages WHERE (user_mobile=? AND contact_mobile=?) OR (user_mobile=? AND contact_mobile=?)`,[mobile, contactNumber, contactNumber, mobile], (err, results) => {
           if (err) throw err;
           
           let messages = results.map(function(result) {

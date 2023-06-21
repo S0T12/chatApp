@@ -11,14 +11,14 @@ module.exports = async function loginCase(ws, data) {
     let password = data.password;
     
     try {
-        database.query(`SELECT * FROM users WHERE mobile=${mobile}`, async (err, results) => {
+        database.query(`SELECT * FROM users WHERE mobile=?`,[mobile], async (err, results) => { // Parameters passed should be sanitized 
             if(err) throw err;
 
             if (results && results.length>0) {
 
                 const match = await bcrypt.compare(password, results[0].password);
 
-                if (match) {
+                if (match) {    
                     let token = jwt.sign({
                         mobile: mobile,
                         uuid: results[0].uuid,
@@ -49,5 +49,11 @@ module.exports = async function loginCase(ws, data) {
         });
     } catch (err) {
         console.log(err);
+        let data = {
+            res: 'false',
+            action: 'falseLogin',
+            message: err
+        }
+        ws.send(JSON.stringify(data)); 
     } 
 }

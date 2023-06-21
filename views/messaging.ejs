@@ -17,7 +17,7 @@
       background-color: #fff;
       margin: 20px auto;
       padding: 20px;
-      width: 400px;
+      width: 500px;
     }
 
     #mainContainer {
@@ -168,6 +168,7 @@
     
     <div class="input-field">
       <button type="button" id="edit-contact-btn">Edit Contact Name</button>
+      <button type="button" id="remove-contact-btn">Remove Contact</button>
     </div>
 
     <div class="error-msg" id="error-msg"><%= errorMsg %></div>
@@ -188,6 +189,8 @@
       let dialogueOutput = document.getElementById('dialogue-output');
       let selectedContactNumber;
       let contactName;
+
+      dialogueOutput.innerHTML = 'There is nothing to display';
 
       // Function to set cookie data
       function setCookie(cname, cvalue, exdays) {
@@ -369,6 +372,24 @@
 
       editContactWindow.addEventListener('click', () => {
         editNumberInput.value = selectedContactNumber;
+      });
+
+      let removeContactBtn = document.getElementById('remove-contact-btn');
+
+      removeContactBtn.addEventListener('click', function() {
+        if (selectedContactNumber === undefined || selectedContactNumber === null) {
+          errorMsg.innerHTML = 'Please select a contact to remove.';
+        } else {
+          ws.send(JSON.stringify({
+            action: "removeContact",
+            contactNumber: selectedContactNumber,
+            token: token
+          }));
+          selectedContactNumber = null;
+          contactName = null;
+          document.querySelector('label').innerHTML = 'Name of contact:';
+          dialogueOutput.innerHTML = 'There is nothing to display';
+        }
       });
       
       let showListBtn = document.getElementById('show-list-btn');
