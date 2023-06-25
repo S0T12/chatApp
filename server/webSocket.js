@@ -8,38 +8,26 @@ const sendCase = require('./send');
 const updateContactNameCase = require('./updateContactName');
 const removeContactCase = require('./removeContact');
 const jwtVerifyCase = require('./jwtVerify');
-const cors = require("cors");
 
-module.exports = function startWebsocketServer () {
+module.exports = function startWebsocketServer() {
+  const wss = new WebSocket.Server({ port: 8080 });
 
-  const wss = new WebSocket.Server({ port: 8080, verifyClient: verifyWebsocket });
+  const clients = new Map();
 
-  function verifyWebsocket(info, done) {
-    const origin = info.req.headers.origin;
-    const corsOptions = {
-      origin: origin,
-    }
-    const corsOptionsDelegate = (request, callback) => {
-      let corsOptions;
-      if (request.header('Origin') === origin) {
-        corsOptions = { origin: true };
-      } else {
-        corsOptions = { origin: false };
-      }
-      callback(null, corsOptions);
-    };
-    done(corsOptionsDelegate);
-  }
-  
   wss.on('connection', (ws) => {
     ws.on('message', (msg) => {
       let data = JSON.parse(msg);
-      
+
+      const contactNumber = data.contactNumber;
+      const clientId = generateClientId();
+      console.log(`clientId : ${clientId}`);
+      clients.set(clientId, {ws: ws, contactNumber: contactNumber});    
+
       switch (data.action) {
         case 'login':
           loginCase(ws, data);
           break;
-        
+
         case 'register':
           registerCase(ws, data);
           break;
@@ -51,15 +39,15 @@ module.exports = function startWebsocketServer () {
         case 'getContacts':
           getContactsCase(ws, data);
           break;
-  
+
         case 'getMessages':
           getMessagesCase(ws, data);
           break;
-  
+
         case 'send':
-          sendCase(ws, data);
+          sendCase(ws, data, clients);
           break;
-          
+
         case 'updateContactName':
           updateContactNameCase(ws, data);
           break;
@@ -67,7 +55,7 @@ module.exports = function startWebsocketServer () {
         case 'removeContact':
           removeContactCase(ws, data);
           break;
-  
+
         case 'jwtVerify':
           jwtVerifyCase(ws, data);
           break;
@@ -75,7 +63,11 @@ module.exports = function startWebsocketServer () {
     });
   });
 
-  wss.on("error", err => {
+  wss.on('error', (err) => {
     console.error(err);
   });
+};
+
+function generateClientId() {
+  return Math.random().toString(36).substr(2, 9);
 }
